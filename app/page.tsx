@@ -1,101 +1,166 @@
-import Image from "next/image";
+'use client'
 
-export default function Home() {
+import React, { CSSProperties, useState } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+
+
+import { useCSVReader } from 'react-papaparse';
+import * as d3 from 'd3'
+
+import {AggData, import_raw_csv, CleanedRawData, fmt_human_day} from './data_processing'
+
+ 
+
+ const styles = {
+  csvReader: {
+    display: 'flex',
+    flexDirection: 'row',
+    marginBottom: 10,
+  } as CSSProperties,
+  browseFile: {
+    width: '20%',
+  } as CSSProperties,
+  acceptedFile: {
+    border: '1px solid #ccc', 
+    height: 45,
+    lineHeight: 2.5,
+    paddingLeft: 10,
+    width: '80%',
+  } as CSSProperties,
+  remove: {
+    borderRadius: 0,
+    padding: '0 20px',
+  } as CSSProperties,
+  progressBarBackgroundColor: {
+    backgroundColor: 'grey',
+  } as CSSProperties,
+};
+
+ export default function  MyChart() {
+  
+  const { CSVReader } = useCSVReader();
+
+  const time_fmt_human = d3.timeFormat('%Y-%m-%d %H:%M')
+  const time_fmt_iso_day = d3.timeFormat('%Y-%m-%d')
+
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const initial_data:     CleanedRawData[] = [{
+    date: 0,
+    human_day: "2024-01-01",
+    raw_month: "2024-01",
+    iso_month: "2024-01-01",
+    raw_day: "2024-01-01",
+    in: 0,
+    out: 0,
+},
+{
+  date: 1,
+  human_day: "2024-02-01",
+  raw_month: "2024-02",
+  iso_month: "2024-02-01",
+  raw_day: "2024-02-01",
+  in: 10,
+  out: 10,
+}]
+  const initial_agg_data: AggData[] = [
+    {
+      date: 0,
+      human_day: "2024-01-01",
+      // raw_day: string; 
+      in_sum: 0, 
+      out_sum: 0
+      }
+
+  ]
+
+  const [data, setRawData] = useState(initial_data)
+  const [data_agg, setAggData] = useState(initial_agg_data)
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <>
+    <CSVReader
+// eslint-disable-next-line
+      onUploadAccepted={(results: any) => {
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
-}
+        import_raw_csv(results, "in", setRawData, setAggData, setErrorMessage)
+        
+      }}
+    >
+      {({
+        getRootProps,
+        acceptedFile,
+        ProgressBar,
+// eslint-disable-next-line
+      }: any) => (
+        <>
+          <div style={styles.csvReader}>
+           
+            <button type='button' {...getRootProps()} style={styles.browseFile}>
+            Input energy - Browse file
+            </button>
+            <div style={styles.acceptedFile}>
+              {acceptedFile && acceptedFile.name}
+            </div>
+          </div>
+          <ProgressBar style={styles.progressBarBackgroundColor} />
+        </>
+      )}
+    </CSVReader>
+    <CSVReader
+// eslint-disable-next-line
+      onUploadAccepted={(results: any) => {
+        import_raw_csv(results, "out", setRawData, setAggData, setErrorMessage)
+      }
+      }
+    >
+      {({
+        getRootProps,
+        acceptedFile,
+        ProgressBar,
+// eslint-disable-next-line
+      }: any) => (
+        <>
+          <div style={styles.csvReader}>
+            <button type='button' {...getRootProps()} style={styles.browseFile}>
+              Output energy - Browse file
+            </button>
+            <div style={styles.acceptedFile}>
+              {acceptedFile && acceptedFile.name}
+            </div>
+          </div>
+          <ProgressBar style={styles.progressBarBackgroundColor} />
+        </>
+      )}
+    </CSVReader>
+    
+    {errorMessage && (
+      <p className="error"> {errorMessage} </p>
+    )}
+
+    <ResponsiveContainer minWidth={350} height={450}>
+    <LineChart id="line1" data={data}>
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis xAxisId="0" dataKey="date" interval="preserveStart" allowDuplicatedCategory={false} tickFormatter={t => fmt_human_day(new Date(t)) }/>
+      <YAxis />
+      <Tooltip labelFormatter={t => time_fmt_human(new Date(t)) } />
+      <Legend />
+      <Line name="raw in"  type="linear" isAnimationActive={false} dataKey="in"  connectNulls stroke="#BB0000" dot={false} activeDot={{ r: 6 }} />
+      <Line name="raw out" type="linear" isAnimationActive={false} dataKey="out" connectNulls stroke="#00AA00" dot={false} activeDot={{ r: 6 }} />
+    </LineChart>
+    </ResponsiveContainer>
+    <ResponsiveContainer minWidth={350} height={450}>
+    <LineChart id="line2" data={data_agg}>
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis xAxisId="0" dataKey="human_day" allowDuplicatedCategory={false} />
+      <YAxis />
+      <Tooltip labelFormatter={t => time_fmt_iso_day(new Date(t)) } />
+      <Legend />
+      <Line name="daily in"  dataKey="in_sum"  isAnimationActive={false} stroke="#BB0000" fill="#BB0000" />
+      <Line name="daily out" dataKey="out_sum" isAnimationActive={false} stroke="#00AA00" fill="#00AA00" />
+    </LineChart>
+    </ResponsiveContainer>
+    </>
+   )
+
+ }
