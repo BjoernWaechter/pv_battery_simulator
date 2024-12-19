@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "build": "react-scripts build",
-  "homepage": "https://mywebsite.com",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -21,10 +20,15 @@
     "next": "14.2.14",
     "papaparse": "^5.4.1",
     "react": "^18",
+    "react-bootstrap-range-slider": "^3.0.8",
     "react-charts": "^3.0.0-beta.57",
     "react-dom": "^18",
+    "react-image": "^4.1.0",
     "react-papaparse": "^4.4.0",
-    "recharts": "^2.13.0-alpha.5"
+    "react-tabs": "^6.0.2",
+    "recharts": "^2.13.0-alpha.5",
+    "style-loader": "^4.0.0",
+    "styled-components": "^6.1.13"
   },
   "devDependencies": {
     "@types/node": "^20",
