@@ -15,7 +15,7 @@ function changeTab(idx: number)
   }
 }
 
-export default () => (
+const MyTabs = () => (
   <Tabs onSelect={(selectedIndex) => changeTab(selectedIndex)}>
     <TabList>
       <Tab>Import Raw Data</Tab>
@@ -26,3 +26,7 @@ export default () => (
     </TabPanel>
   </Tabs>
 );
+
+MyTabs.displayName = 'MyTabs';
+
+export default MyTabs;

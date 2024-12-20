@@ -1,14 +1,14 @@
 'use client'
 
-import React, { CSSProperties, useState } from 'react';
+import React, { CSSProperties, Dispatch, SetStateAction, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 
 import { useCSVReader } from 'react-papaparse';
 import * as d3 from 'd3'
-import RangeSlider from 'react-bootstrap-range-slider';
+// import RangeSlider from 'react-bootstrap-range-slider';
 
-import {AggData, import_raw_csv, CleanedRawData, fmt_human_day, new_raw, daily_agg} from '../data_processing'
+import {AggData, import_raw_csv, fmt_human_day, BatteryData, CleanedRawData} from '../data_processing'
 
  
 import styled from "styled-components";
@@ -91,8 +91,7 @@ const Button = styled.button`
 
 export default function ImportRawData() {
 
-
-  const [data, setRawData] = useState([{
+  const raw_data: CleanedRawData = {
     date: 0,
     human_day: "2024-01-01",
     raw_month: "2024-01",
@@ -100,33 +99,26 @@ export default function ImportRawData() {
     raw_day: "2024-01-01",
     in: 0,
     out: 0,
-  },
-  {
-  date: 1,
-  human_day: "2024-02-01",
-  raw_month: "2024-02",
-  iso_month: "2024-02-01",
-  raw_day: "2024-02-01",
-  in: 10,
-  out: 10,
-  }])
+  };
+  const [data, setRawData] = useState([raw_data])
 
-  const [data_agg, setAggData] = useState([
-    {
-      date: 0,
-      human_day: "2024-01-01",
-      in_sum: 0, 
-      out_sum: 0
-    }
-  ])
+  const agg_data: AggData = {
+    date: 0,
+    human_day: "",
+    in_sum: 0,
+    out_sum: 0
+  };
+  const [data_agg, setAggData] = useState([agg_data])
 
-  const [data_battery, setBatteryData] = useState([
-    {
-      date: 0,
-      human_day: "2024-01-01",
-      soc: 0
-    }
-  ])
+  const bat_data: BatteryData = {
+    date: 0,
+    human_day: "",
+    soc5: 0,
+    soc10: 0,
+    soc15: 0
+  };
+  const [data_battery, setBatteryData] = useState([bat_data])
+
   
   const { CSVReader } = useCSVReader();
 
@@ -137,22 +129,13 @@ export default function ImportRawData() {
   const [resultMessage, setResultMessage] = useState('');
   const [importMessage, setImportMessage] = useState('\u2754 Input energy data ...\n\u2754 Output energy data ...');
 
-  const msgSetter: { [name: string] : any; } = {};
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+  const msgSetter: { [name: string] : Dispatch<SetStateAction<string>>; } = {};
   msgSetter["error"] = setErrorMessage;
   msgSetter["result"] = setResultMessage;
   msgSetter["import"] = setImportMessage;
-  // persons["p1"] = { firstName: "F1", lastName: "L1" };
-  // persons["p2"] = { firstName: "F2" }; // will result in an error
 
-
-  // const [image, setImage] = useState(ImageNoInfo);
-
-
-  // const {src} = useImage({
-  //   srcList: '../images/no_info.png',
-  // })
-  const [ value, setValue ] = useState(0);
-
+  // const [ value, setValue ] = useState(0);
 
   return (
     <>
@@ -210,11 +193,12 @@ export default function ImportRawData() {
         </>
       )}
     </CSVReader>
-    <RangeSlider
+    {/* <RangeSlider
       value={value}
       min={0}
       max={30}
-    />
+      onChange={changeEvent => setValue(changeEvent.target.value)}
+    /> */}
 
     <div>
     {importMessage && (

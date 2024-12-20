@@ -1,40 +1,38 @@
 import moment from "moment";
 import * as d3 from "d3";
-import { SetStateAction } from "react";
+import { Dispatch, SetStateAction } from "react";
 
 
 const battery_maxs = [0, 5, 10, 15];
 const price_in = 0.30;
 const price_out = 0.08;
 
-type RawData = {
+export type RawData = {
   date: number;
-  name: string;
+  name: string | null;
   value: number | null;
 };
 
 export type CleanedRawData = {
-  date: number;
-  human_day: string;
-  raw_month: string;
-  iso_month: string;
-  raw_day: string;
+  date: number | null;
+  human_day: string | null;
+  raw_month: string | null;
+  iso_month: string | null;
+  raw_day: string | null;
   in: number | null;
   out: number | null;
 };
 
 export type AggData = {
-  date: number;
-  human_day: string;
-  // raw_day: string;
+  date: number | null;
+  human_day: string | null;
   in_sum: number | null;
   out_sum: number | null;
 };
 
 export type BatteryData = {
-  date: number;
-  human_day: string;
-  // raw_day: string;
+  date: number | null;
+  human_day: string | null;
   soc5: number | null;
   soc10: number | null;
   soc15: number | null;
@@ -53,20 +51,19 @@ export const new_raw: CleanedRawData[] = [{
   out: 0,
 },
 {
-date: 1,
-human_day: "2024-02-01",
-raw_month: "2024-02",
-iso_month: "2024-02-01",
-raw_day: "2024-02-01",
-in: 10,
-out: 10,
+  date: 1,
+  human_day: "2024-02-01",
+  raw_month: "2024-02",
+  iso_month: "2024-02-01",
+  raw_day: "2024-02-01",
+  in: 10,
+  out: 10,
 }];
 
 export const daily_agg: AggData[] = [
   {
     date: 0,
     human_day: "2024-01-01",
-    // raw_day: string; 
     in_sum: 0, 
     out_sum: 0
     }
@@ -86,12 +83,11 @@ export const battery_soc: BatteryData[] = [
 const fmt_iso_day = d3.timeFormat("%Y-%m-%dT00:00:00Z");
 const fmt_iso_month = d3.timeFormat("%Y-%m-01T00:00:00Z");
 export const fmt_human_day = d3.timeFormat("%Y-%m-%d");
-const time_fmt_human = d3.timeFormat("%Y-%m-%d %H:%M");
 
 const fmt_raw_month = d3.timeFormat("%Y%m");
 
 function hasValidDate(element: RawData, _index: number, _array: RawData[]) {
-  return !isNaN(element.date);
+  return element.date && !isNaN(element.date);
 }
 
 
@@ -120,8 +116,10 @@ function agg_values(
 }
 
 function merge_data(
-  setRawData, setAggData, setBatteryData,
-  msgSetter
+  setRawData: { (value: SetStateAction<CleanedRawData[]>): void; (value: SetStateAction<CleanedRawData[]>): void; }, 
+  setAggData: { (value: SetStateAction<AggData[]>): void; (value: SetStateAction<AggData[]>): void; }, 
+  setBatteryData: { (value: SetStateAction<BatteryData[]>): void; (value: SetStateAction<BatteryData[]>): void; }, 
+  msgSetter: { [x: string]: Dispatch<SetStateAction<string>>; }
 ) {
   const all_data = in_data.concat(out_data);
   const data_sorted = all_data
@@ -158,9 +156,9 @@ function merge_data(
 
     if (prev_date > val.date) {
       console.log("#################### ERROR ##################");
-      msgSetter["error"](
-        "Time sort error: " + typeof prev_date + "-" + typeof val.date
-      );
+      // msgSetter["error"](
+      //   "Time sort error: " + typeof prev_date + "-" + typeof val.date
+      // );
     }
     // prev_date = val.date
     if (!isNaN(ts.getTime()) && !isNaN(val.value || NaN)) {
@@ -390,10 +388,11 @@ export function import_raw_csv(
   // eslint-disable-next-line
   results: any,
   input_type: string,
-  setRawData, 
-  setAggData,
-  setBatteryData,
-  msgSetter
+  setRawData: { (value: SetStateAction<CleanedRawData[]>): void; (value: SetStateAction<CleanedRawData[]>): void; }, 
+  setAggData: { (value: SetStateAction<AggData[]>): void; (value: SetStateAction<AggData[]>): void; }, 
+  setBatteryData: { (value: SetStateAction<BatteryData[]>): void; (value: SetStateAction<BatteryData[]>): void; }, 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+  msgSetter: { [x: string]: Dispatch<SetStateAction<string>>; }
 ) 
 {
   if (input_type == "in")
