@@ -1,17 +1,17 @@
 'use client'
 
 import React, { CSSProperties, Dispatch, SetStateAction, useState } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 
 import { useCSVReader } from 'react-papaparse';
 import * as d3 from 'd3'
 // import RangeSlider from 'react-bootstrap-range-slider';
 
-import {AggData, import_raw_csv, fmt_human_day, BatteryData, CleanedRawData} from '../data_processing'
+import {AggData, import_raw_csv, BatteryData, CleanedRawData} from '../data_processing'
 
  
 import styled from "styled-components";
+import TimeGraph from '../components/TimeGraph/TimeGraph';
 
  const styles = {
   csvReader: {
@@ -122,8 +122,6 @@ export default function ImportRawData() {
   
   const { CSVReader } = useCSVReader();
 
-  const time_fmt_human = d3.timeFormat('%Y-%m-%d %H:%M')
-  const time_fmt_iso_day = d3.timeFormat('%Y-%m-%d')
 
   const [errorMessage, setErrorMessage] = useState('');
   const [resultMessage, setResultMessage] = useState('');
@@ -210,42 +208,15 @@ export default function ImportRawData() {
       <p className="error"> {errorMessage} </p>
     )}
 
-    {/* <ResponsiveContainer minWidth={350} height={250}>
-      <LineChart id="line1" data={data} margin={{ top: 5, right: 5, bottom: 15, left: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis xAxisId="0" type="number" domain={['dataMin', 'dataMax']} dataKey="date" interval="preserveStart" allowDuplicatedCategory={false} tickFormatter={t => fmt_human_day(new Date(t)) } angle={-15} tickMargin={10} />
-        <YAxis />
-        <Tooltip labelFormatter={t => time_fmt_human(new Date(t)) } />
-        <Legend verticalAlign="top" height={36}/>
-        <Line name="Verbrauchte Energie [kwh]"  type="linear" isAnimationActive={false} dataKey="in"  connectNulls stroke="#BB0000" dot={false} activeDot={{ r: 6 }} />
-        <Line name="Eingespeiste Energie [kwh]" type="linear" isAnimationActive={false} dataKey="out" connectNulls stroke="#00AA00" dot={false} activeDot={{ r: 6 }} />
-      </LineChart>
-    </ResponsiveContainer> */}
-    <ResponsiveContainer minWidth={350} height={350}>
-      <LineChart id="line2" data={data_agg} margin={{ top: 5, right: 5, bottom: 15, left: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis xAxisId="0" dataKey="human_day" allowDuplicatedCategory={false} angle={-15} tickMargin={10} />
-        <YAxis />
-        <Tooltip labelFormatter={t => time_fmt_iso_day(new Date(t)) } />
-        <Legend verticalAlign="top" height={36}/>
-        <Line name="Täglicher Verbauch [kwh]"  dataKey="in_sum"  isAnimationActive={false} stroke="#BB0000" fill="#BB0000" />
-        <Line name="Tägliche Einspeisung [kwh]" dataKey="out_sum" isAnimationActive={false} stroke="#00AA00" fill="#00AA00" />
-      </LineChart>
-    </ResponsiveContainer>
-    <ResponsiveContainer minWidth={350} height={350}>
-      <LineChart id="line3" data={data_battery} margin={{ top: 5, right: 5, bottom: 15, left: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" />
-        {/* <XAxis xAxisId="0" dataKey="human_day" allowDuplicatedCategory={false} angle={-15} tickMargin={10} tickFormatter={t => fmt_human_day(new Date(t)) }/> */}
-        <XAxis xAxisId="0" type="number" domain={['dataMin', 'dataMax']} dataKey="date" interval="preserveStart" allowDuplicatedCategory={false} tickFormatter={t => fmt_human_day(new Date(t)) } angle={-15} tickMargin={10} />
-        <YAxis />
-        <Tooltip labelFormatter={t => time_fmt_human(new Date(t)) } />
-        <Legend verticalAlign="top" height={36}/>
-        <Line name="SOC 5kwh [kwh]"  dataKey="soc5"  type="linear" isAnimationActive={false} stroke="#BB0000" dot={false}/>
-        <Line name="SOC 10kwh [kwh]"  dataKey="soc10"  type="linear" isAnimationActive={false} stroke="#00AA00" dot={false}/>
-        <Line name="SOC 15kwh [kwh]"  dataKey="soc15"  type="linear" isAnimationActive={false} stroke="#0000AA" dot={false}/>
-      </LineChart>
-    </ResponsiveContainer>
-
+    <TimeGraph id="daily_graph"   data={data_agg}     height={300} minWidth={350} lines={[
+      {name:"Täglicher Verbauch [kwh]", dataKey:"in_sum", dot:true },
+      {name:"Tägliche Einspeisung [kwh]", dataKey:"out_sum", dot:true }
+      ]} />
+    <TimeGraph id="battery_graph" data={data_battery} height={300} minWidth={350} lines={[
+      {name:"SOC 5kwh [kwh]", dataKey:"soc5", dot:false},
+      {name:"SOC 10kwh [kwh]", dataKey:"soc10", dot:false},
+      {name:"SOC 15kwh [kwh]", dataKey:"soc15", dot:false}
+      ]} />
     {resultMessage && (
       <p className="saving_result" style={styles.resultMessage}> {resultMessage} </p>
     )}
