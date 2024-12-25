@@ -1,6 +1,7 @@
 import moment from "moment";
 import * as d3 from "d3";
 import { Dispatch, SetStateAction } from "react";
+import { AggData, init_battery_data, BatteryData, init_agg_data, init_cleaned_raw } from "./data_types";
 
 
 const battery_maxs = [0, 5, 10, 15];
@@ -13,72 +14,29 @@ export type RawData = {
   value: number | null;
 };
 
-export type CleanedRawData = {
-  date: number | null;
-  human_day: string | null;
-  raw_month: string | null;
-  iso_month: string | null;
-  raw_day: string | null;
-  in: number | null;
-  out: number | null;
-};
-
-export type AggData = {
-  date: number | null;
-  human_day: string | null;
-  in_sum: number | null;
-  out_sum: number | null;
-};
-
-export type BatteryData = {
-  date: number | null;
-  human_day: string | null;
-  soc5: number | null;
-  soc10: number | null;
-  soc15: number | null;
-};
-
 const in_data: RawData[] = [];
 const out_data: RawData[] = [];
 
-export const new_raw: CleanedRawData[] = [{
-  date: 0,
-  human_day: "2024-01-01",
-  raw_month: "2024-01",
-  iso_month: "2024-01-01",
-  raw_day: "2024-01-01",
-  in: 0,
-  out: 0,
-},
-{
-  date: 1,
-  human_day: "2024-02-01",
-  raw_month: "2024-02",
-  iso_month: "2024-02-01",
-  raw_day: "2024-02-01",
-  in: 10,
-  out: 10,
-}];
 
-export const daily_agg: AggData[] = [
-  {
-    date: 0,
-    human_day: "2024-01-01",
-    in_sum: 0, 
-    out_sum: 0
-    }
-];
+// export const daily_agg: AggData[] = [
+//   {
+//     date: 0,
+//     human_day: "2024-01-01",
+//     in_sum: 0, 
+//     out_sum: 0
+//     }
+// ];
 
 
-export const battery_soc: BatteryData[] = [
-  {
-    date: 0,
-    human_day: "2024-01-01",
-    soc5: 0,
-    soc10: 0,
-    soc15: 0
-    }
-];
+// export const battery_soc: BatteryData[] = [
+//   {
+//     date: 0,
+//     human_day: "2024-01-01",
+//     soc5: 0,
+//     soc10: 0,
+//     soc15: 0
+//     }
+// ];
 
 const fmt_iso_day = d3.timeFormat("%Y-%m-%dT00:00:00Z");
 const fmt_iso_month = d3.timeFormat("%Y-%m-01T00:00:00Z");
@@ -116,7 +74,7 @@ function agg_values(
 }
 
 function merge_data(
-  setRawData: { (value: SetStateAction<CleanedRawData[]>): void; (value: SetStateAction<CleanedRawData[]>): void; }, 
+  // setRawData: { (value: SetStateAction<CleanedRawData[]>): void; (value: SetStateAction<CleanedRawData[]>): void; }, 
   setAggData: { (value: SetStateAction<AggData[]>): void; (value: SetStateAction<AggData[]>): void; }, 
   setBatteryData: { (value: SetStateAction<BatteryData[]>): void; (value: SetStateAction<BatteryData[]>): void; }, 
   msgSetter: { [x: string]: Dispatch<SetStateAction<string>>; }
@@ -135,9 +93,9 @@ function merge_data(
   let out_day_min: number | null = null;
   let out_day_max: number | null = null;
 
-  new_raw.splice(0, new_raw.length);
-  daily_agg.splice(0, daily_agg.length);
-  battery_soc.splice(0, battery_soc.length);
+  init_cleaned_raw.splice(0, init_cleaned_raw.length);
+  init_agg_data.splice(0, init_agg_data.length);
+  init_battery_data.splice(0, init_battery_data.length);
 
 
   console.log(`in size: ${in_data.length} out size: ${out_data.length} `)
@@ -170,7 +128,7 @@ function merge_data(
 
       if (iso_month != prev_iso_month) {
         const iso_month_date = new Date(iso_month);
-        new_raw.push({
+        init_cleaned_raw.push({
           date: moment(iso_month_date).valueOf(),
           human_day: fmt_human_day(iso_month_date),
           raw_month: fmt_raw_month(iso_month_date),
@@ -181,16 +139,16 @@ function merge_data(
         });
       }
 
-      const last_idx = new_raw.length - 1;
+      const last_idx = init_cleaned_raw.length - 1;
       // Merge in and out at the same date into one record
       if (prev_date == val.date && last_idx > 0) {
         if (val.name == "in") {
-          new_raw[last_idx].in = val.value;
+          init_cleaned_raw[last_idx].in = val.value;
         } else {
-          new_raw[last_idx].out = val.value;
+          init_cleaned_raw[last_idx].out = val.value;
         }
       } else {
-        new_raw.push({
+        init_cleaned_raw.push({
           date: moment(ts).valueOf(),
           human_day: fmt_human_day(ts),
           raw_month: fmt_raw_month(ts),
@@ -214,8 +172,6 @@ function merge_data(
         2
       );
 
-      const human_date = new Date(prev_iso_day);
-
       if (
         prev_iso_day != iso_day &&
         prev_iso_day != "" &&
@@ -228,13 +184,11 @@ function merge_data(
 
         const agg_data: AggData = {
           date: moment(prev_date).valueOf(),
-          human_day: fmt_human_day(human_date),
-          // raw_day: prev_iso_day,
           in_sum: in_diff,
           out_sum: out_diff,
         };
 
-        daily_agg.push(agg_data);
+        init_agg_data.push(agg_data);
 
         in_day_min = null;
         in_day_max = null;
@@ -307,14 +261,12 @@ function merge_data(
 
       const battery_data: BatteryData = {
         date: moment(ts).valueOf(),
-        human_day: fmt_human_day(ts),
-        // raw_day: prev_iso_day,
         soc5: round_digit(battery[1],3),
         soc10: round_digit(battery[2],3),
         soc15: round_digit(battery[3],3)
       };
     
-      battery_soc.push(battery_data);
+      init_battery_data.push(battery_data);
 
       for(let bat_idx=0; bat_idx<battery_maxs.length; bat_idx++)
       {
@@ -379,16 +331,14 @@ function merge_data(
 
   msgSetter["import"](importMsg)
 
-  setRawData(new_raw.slice());
-  setAggData(daily_agg.slice());
-  setBatteryData(battery_soc.slice());
+  setAggData(init_agg_data.slice());
+  setBatteryData(init_battery_data.slice());
 }
 
 export function import_raw_csv(
   // eslint-disable-next-line
   results: any,
   input_type: string,
-  setRawData: { (value: SetStateAction<CleanedRawData[]>): void; (value: SetStateAction<CleanedRawData[]>): void; }, 
   setAggData: { (value: SetStateAction<AggData[]>): void; (value: SetStateAction<AggData[]>): void; }, 
   setBatteryData: { (value: SetStateAction<BatteryData[]>): void; (value: SetStateAction<BatteryData[]>): void; }, 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
@@ -421,5 +371,9 @@ export function import_raw_csv(
       out_data.push(new_row);
     }
   });
-  merge_data(setRawData, setAggData, setBatteryData, msgSetter);
+  merge_data(
+    setAggData, 
+    setBatteryData,
+    msgSetter
+  );
 }

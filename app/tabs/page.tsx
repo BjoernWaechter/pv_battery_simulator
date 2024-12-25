@@ -4,14 +4,14 @@ import React, { CSSProperties, Dispatch, SetStateAction, useState } from 'react'
 
 
 import { useCSVReader } from 'react-papaparse';
-import * as d3 from 'd3'
 // import RangeSlider from 'react-bootstrap-range-slider';
 
-import {AggData, import_raw_csv, BatteryData, CleanedRawData} from '../data_processing'
+import {import_raw_csv} from '../data_processing'
 
  
 import styled from "styled-components";
 import TimeGraph from '../components/TimeGraph/TimeGraph';
+import { init_battery_data, init_agg_data } from '../data_types';
 
  const styles = {
   csvReader: {
@@ -56,19 +56,8 @@ import TimeGraph from '../components/TimeGraph/TimeGraph';
   } as CSSProperties,
 };
 
-const theme = {
-  blue: {
-    default: "#3f51b5",
-    hover: "#283593",
-  },
-  pink: {
-    default: "#e91e63",
-    hover: "#ad1457",
-  },
-};
-
 const Button = styled.button`
-  background-color: ${(props) => theme["blue"].default};
+  background-color: #3f51b5;
   color: white;
   padding: 5px 15px;
   border-radius: 5px;
@@ -79,7 +68,7 @@ const Button = styled.button`
   box-shadow: 0px 2px 2px lightgray;
   transition: ease background-color 250ms;
   &:hover {
-    background-color: ${(props) => theme["blue"].hover};
+    background-color: #283593;
   }
   &:disabled {
     cursor: default;
@@ -90,38 +79,11 @@ const Button = styled.button`
 
 
 export default function ImportRawData() {
-
-  const raw_data: CleanedRawData = {
-    date: 0,
-    human_day: "2024-01-01",
-    raw_month: "2024-01",
-    iso_month: "2024-01-01",
-    raw_day: "2024-01-01",
-    in: 0,
-    out: 0,
-  };
-  const [data, setRawData] = useState([raw_data])
-
-  const agg_data: AggData = {
-    date: 0,
-    human_day: "",
-    in_sum: 0,
-    out_sum: 0
-  };
-  const [data_agg, setAggData] = useState([agg_data])
-
-  const bat_data: BatteryData = {
-    date: 0,
-    human_day: "",
-    soc5: 0,
-    soc10: 0,
-    soc15: 0
-  };
-  const [data_battery, setBatteryData] = useState([bat_data])
-
   
-  const { CSVReader } = useCSVReader();
+  const [data_agg, setAggData] = useState(init_agg_data)
+  const [data_battery, setBatteryData] = useState(init_battery_data)
 
+  const { CSVReader } = useCSVReader();
 
   const [errorMessage, setErrorMessage] = useState('');
   const [resultMessage, setResultMessage] = useState('');
@@ -133,7 +95,6 @@ export default function ImportRawData() {
   msgSetter["result"] = setResultMessage;
   msgSetter["import"] = setImportMessage;
 
-  // const [ value, setValue ] = useState(0);
 
   return (
     <>
@@ -141,7 +102,13 @@ export default function ImportRawData() {
 // eslint-disable-next-line
       onUploadAccepted={(results: any) => {
 
-        import_raw_csv(results, "in", setRawData, setAggData, setBatteryData, msgSetter)
+        import_raw_csv(
+          results, 
+          "in",
+          setAggData, 
+          setBatteryData, 
+          msgSetter
+        )
         
       }}
     >
@@ -168,7 +135,13 @@ export default function ImportRawData() {
     <CSVReader
 // eslint-disable-next-line
       onUploadAccepted={(results: any) => {
-        import_raw_csv(results, "out", setRawData, setAggData, setBatteryData, msgSetter)
+        import_raw_csv(
+          results, 
+          "out",
+          setAggData, 
+          setBatteryData, 
+          msgSetter
+        )
       }
       }
     >
